@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "fido2-lib": "^3.5.3"
+  },
+  "name": "fido2-demonstration",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bryan Nielsen <bnielsen1965@gmail.com> (https://github.com/bnielsen1965)",
+  "license": "MIT",
+  "description": "A demonstration of FIDO2 token authentication in a NodeJS server application."
+}
