@@ -102,7 +102,8 @@ async function postAttestationResponse (req, res, next) {
   try {
     const users = getUsers();
     users[req.session.username] = {
-      ...req.body,
+      id: req.body.id,
+      rawId: req.body.rawId,
       counter: attestationResult.authnrData.get("counter"),
       publicKey: attestationResult.authnrData.get("credentialPublicKeyPem"),
       userHandle: req.session.userHandle
@@ -270,6 +271,5 @@ function getUsers () {
 
 // save users list to file
 function saveUsers (users) {
-  console.log("U", users)
   fs.writeFileSync("./users.json", JSON.stringify(users, null, 2));
 }

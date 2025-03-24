@@ -103,6 +103,7 @@ async function requestAttestationOptions (registrationUser) {
       body: JSON.stringify(registrationUser)
     });
     attestationOptions = await httpResponse.json();
+    if (attestationOptions.error) throw new Error(attestationOptions.error);
   }
   catch (error) {
     return appendError(`Failed to get attestation options from server. ${error.message}`);
@@ -168,6 +169,7 @@ async function requestAttestationResult (credentials) {
       body: JSON.stringify(attestationResponse)
     });
     attestationResult = await httpResponse.json();
+    if (attestationResult.error) throw new Error(attestationResult.error);
   }
   catch (error) {
     return appendError(`Failed to get attestation result from server. ${error.message}`);
@@ -191,6 +193,7 @@ async function requestAssertionOptions (loginUser) {
       body: JSON.stringify(loginUser)
     });
     assertionOptions = await httpResponse.json();
+    if (assertionOptions.error) throw new Error(assertionOptions.error);
   }
   catch (error) {
     return appendError(`Failed to get assertion options from server. ${error.message}`);
@@ -209,7 +212,7 @@ async function assertionOptionsToPublicKeyCredentials (assertionOptions) {
         allowCredentials: assertionOptions.allowCredentials.map(cred => {
           return {
             ...cred,
-            id: base64ToBuffer(cred.id) // convert base64 encoded id to array buffer
+            id: base64ToBuffer(cred.rawId) // convert base64 encoded id to array buffer, we use rawId as this value was base64 encoded by this library
           }
         })
       }
@@ -253,6 +256,7 @@ async function credentialsToAssertionResult (credentials) {
       body: JSON.stringify(assertionResponse)
     });
     assertionResult = await httpResponse.json();
+    if (assertionResult.error) throw new Error(assertionResult.error);
   }
   catch (error) {
     return appendError(`Failed to get assertion result from server. ${error.message}`);
