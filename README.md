@@ -124,3 +124,93 @@ status for the registration process.
                 |                                |                              |                                   |          
 
 
+# login sequence
+
+When a registered user authenticates they start by sending user details, 
+the username, to the server in a request for assertion options.
+
+The server uses the user details to look up the user record for the registered 
+user. The user details, i.e. the public key, are used to create the assertion 
+options that are returned to the client web browser.
+
+The client web browser uses the assertion options to get credentials from the 
+authenticator using credential settings assembled from the assertion options.
+
+The authenticator may require entry of an authentication pin number if set and 
+will expect the user to press the authenticator button to verify their presence.
+Once the authenticator is statisfied it will return the credentials for the 
+registered user to the web browser.
+
+An assertion response is assembled by the web browser using the credentials 
+provided by the authenticator and the assertion response is sent to the web server.
+
+The web server uses the credential id in the assertion response to lookup the 
+registered user record. The user record and assertion response are then used to 
+assemble and expectation object which is then used toe validate the assertion 
+response.
+
+Assuming the assertion response is successfully validated against the expectations 
+then the server finally responds to the web browser with the assertion success 
+status for the authentication process.
+
+    +-----------------------+            +----------------+       +--------------------------+          +---------------------+
+    |                       |            |                |       |                          |          |                     |
+    | authenticator:usb key |            | client:browser |       | relying party:web server |          | user store:database |
+    |                       |            |                |       |                          |          |                     |
+    +-----------------------+            +----------------+       +--------------------------+          +---------------------+
+                                                                                                                              
+                |                                |                              |                                   |          
+                |                                |  request assertion options   |                                   |          
+                |                                |        (user details)        |                                   |          
+                |                                |                              |                                   |          
+                |                                | ---------------------------> |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |             get user              |          
+                |                                |                              |            (username)             |          
+                |                                |                              |                                   |          
+                |                                |                              | --------------------------------> |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |             response              |          
+                |                                |                              |  (user record, public key, etc.)  |          
+                |                                |                              |                                   |          
+                |                                |                              | <-------------------------------- |          
+                |                                |                              |                                   |          
+                |                                |            response          |                                   |          
+                |                                |      (assertion options)     |                                   |          
+                |                                |                              |                                   |          
+                |                                | <--------------------------- |                                   |          
+                |                                |                              |                                   |          
+                |         get credentials        |                              |                                   |          
+                |      (credential settings)     |                              |                                   |          
+                |                                |                              |                                   |          
+                | <----------------------------- |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |           response             |                              |                                   |          
+                |         (credentials)          |                              |                                   |          
+                |                                |                              |                                   |          
+                | -----------------------------> |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |   request assertion result   |                                   |          
+                |                                |    (attestation response)    |                                   |          
+                |                                |                              |                                   |          
+                |                                | ---------------------------> |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |             get user              |          
+                |                                |                              |         (credential id)           |          
+                |                                |                              |                                   |          
+                |                                |                              | --------------------------------> |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |             response              |          
+                |                                |                              |  (user record, public key, etc.)  |          
+                |                                |                              |                                   |          
+                |                                |                              | <-------------------------------- |          
+                |                                |                              |                                   |          
+                |                                |           response           |                                   |          
+                |                                |       (success status)       |                                   |          
+                |                                |                              |                                   |          
+                |                                | <--------------------------- |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
