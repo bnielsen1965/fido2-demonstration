@@ -75,52 +75,52 @@ credentials.
 And the server finally responds to the web browser with the attestation success 
 status for the registration process.
 
-+-----------------------+            +----------------+       +--------------------------+          +---------------------+
-|                       |            |                |       |                          |          |                     |
-| authenticator:usb key |            | client:browser |       | relying party:web server |          | user store:database |
-|                       |            |                |       |                          |          |                     |
-+-----------------------+            +----------------+       +--------------------------+          +---------------------+
-                                                                                                                           
-            |                                |                              |                                   |          
-            |                                |                              |                                   |          
-            |                                |                              |                                   |          
-            |                                | request attestation options  |                                   |          
-            |                                |       (user details)         |                                   |          
-            |                                |                              |                                   |          
-            |                                | ---------------------------> |                                   |          
-            |                                |                              |                                   |          
-            |                                |                              |                                   |          
-            |                                |            response          |                                   |          
-            |                                |      (attestation options)   |                                   |          
-            |                                |                              |                                   |          
-            |                                | <--------------------------- |                                   |          
-            |                                |                              |                                   |          
-            |        create credentials      |                              |                                   |          
-            |      (credential settings)     |                              |                                   |          
-            |                                |                              |                                   |          
-            | <------------------------------+                              |                                   |          
-            |                                |                              |                                   |          
-            |                                |                              |                                   |          
-            |           response             |                              |                                   |          
-            |         (credentials)          |                              |                                   |          
-            |                                |                              |                                   |          
-            | -----------------------------> |                              |                                   |          
-            |                                |                              |                                   |          
-            |                                |                              |                                   |          
-            |                                |  request attestation result  |                                   |          
-            |                                |    (attestation response)    |                                   |          
-            |                                |                              |                                   |          
-            |                                | ---------------------------> |                                   |          
-            |                                |                              |                                   |          
-            |                                |                              |             save user             |          
-            |                                |                              | (public key, credential id, etc.) |          
-            |                                |                              |                                   |          
-            |                                |                              | --------------------------------> |          
-            |                                |           response           |                                   |          
-            |                                |       (success status)       |                                   |          
-            |                                |                              |                                   |          
-            |                                | <--------------------------- |                                   |          
-            |                                |                              |                                   |          
-            |                                |                              |                                   |          
+    +-----------------------+            +----------------+       +--------------------------+          +---------------------+
+    |                       |            |                |       |                          |          |                     |
+    | authenticator:usb key |            | client:browser |       | relying party:web server |          | user store:database |
+    |                       |            |                |       |                          |          |                     |
+    +-----------------------+            +----------------+       +--------------------------+          +---------------------+
+                                                                                                                              
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                | request attestation options  |                                   |          
+                |                                |       (user details)         |                                   |          
+                |                                |                              |                                   |          
+                |                                | ---------------------------> |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |            response          |                                   |          
+                |                                |      (attestation options)   |                                   |          
+                |                                |                              |                                   |          
+                |                                | <--------------------------- |                                   |          
+                |                                |                              |                                   |          
+                |        create credentials      |                              |                                   |          
+                |      (credential settings)     |                              |                                   |          
+                |                                |                              |                                   |          
+                | <------------------------------+                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |           response             |                              |                                   |          
+                |         (credentials)          |                              |                                   |          
+                |                                |                              |                                   |          
+                | -----------------------------> |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
+                |                                |  request attestation result  |                                   |          
+                |                                |    (attestation response)    |                                   |          
+                |                                |                              |                                   |          
+                |                                | ---------------------------> |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |             save user             |          
+                |                                |                              | (public key, credential id, etc.) |          
+                |                                |                              |                                   |          
+                |                                |                              | --------------------------------> |          
+                |                                |           response           |                                   |          
+                |                                |       (success status)       |                                   |          
+                |                                |                              |                                   |          
+                |                                | <--------------------------- |                                   |          
+                |                                |                              |                                   |          
+                |                                |                              |                                   |          
 
 
