@@ -1,6 +1,7 @@
 
 // application configuration
 module.exports = {
+  debug: false,
 
   // web server settings
   webServer: {
@@ -16,7 +17,7 @@ module.exports = {
     relyingParty: {
       id: "localhost",
       name: "Local Host",
-      icon: "https://localhost:8080/logo.png"
+      // icon: "https://localhost:8080/logo.png"
     },
     origin: "https://localhost:8080",
     userIdSize: 32,

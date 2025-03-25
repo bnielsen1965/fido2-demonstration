@@ -44,6 +44,8 @@ server.listen(Config.webServer.port, Config.webServer.address, () => console.log
 
 // route handler "/auth/register-begin" to start registration with post of user details
 async function postAttestationUser (req, res, next) {
+  console.log(`Get attestation options for registration of user ${req.body.username}.`);
+
   let attestationOptions;
   try {
     // define a user object for registration
@@ -53,6 +55,8 @@ async function postAttestationUser (req, res, next) {
       displayName: req.body.displayName
     };
 
+    debug(`Request attestationOptions for user: \n${JSON.stringify(user, null, 2)}`);
+
     // generate registration attestation options for registration request
     attestationOptions = await f2l.attestationOptions();
 
@@ -60,6 +64,8 @@ async function postAttestationUser (req, res, next) {
     attestationOptions.user = user;
     attestationOptions.challenge = Buffer.from(attestationOptions.challenge).toString("base64");
     attestationOptions.origin = Config.fido2Lib.origin;
+
+    debug(`Respond with attestationOptions: \n${JSON.stringify(attestationOptions, null, 2)}`);
 
     // store registration details in user session
     req.session.challenge = attestationOptions.challenge;
@@ -71,12 +77,16 @@ async function postAttestationUser (req, res, next) {
     return res.status(400).json({ error: `Error generating attestation options. ${error.message}` });
   }
 
+  console.log("Respond with attestation options.");
+
   res.json(attestationOptions);
 }
 
 
 // route handler "/auth/register-complete" to complete registration by testing attestation response
 async function postAttestationResponse (req, res, next) {
+  console.log(`Validate attestation response for registration of user ${req.session.username}.`);
+
   let attestationResult;
   // validate attestation response
   try {
@@ -91,6 +101,9 @@ async function postAttestationResponse (req, res, next) {
       ...req.body,
       rawId: base64ToArrayBuffer(req.body.rawId)
     };
+
+    debug(`Validate attestation response against expectation. Response: ${JSON.stringify(attestationResponse, null, 2)} \nExpectation: ${JSON.stringify(attestationExpectations, null, 2)}`);
+
     // execute validation
     attestationResult = await f2l.attestationResult(attestationResponse, attestationExpectations);
   }
@@ -100,36 +113,50 @@ async function postAttestationResponse (req, res, next) {
 
   // save the user registration
   try {
-    const users = getUsers();
-    users[req.session.username] = {
+    const user = {
       id: req.body.id,
       rawId: req.body.rawId,
       counter: attestationResult.authnrData.get("counter"),
       publicKey: attestationResult.authnrData.get("credentialPublicKeyPem"),
       userHandle: req.session.userHandle
     };
+
+    debug(`Save registered user: \n${JSON.stringify(user, null, 2)}`);
+
+    const users = getUsers();
+    users[req.session.username] = user;
     saveUsers(users);
   }
   catch (error) {
     return res.json({ error: `Error saving user registration. ${error.message}`});
   }
+
+  console.log("Registration successful.");
+
   res.json({ success: true });
 }
 
 
 // route handler "/auth/login-begin" to start authentication of user
 async function postAssertionUser (req, res, next) {
+  console.log(`Get assertion options for authentication of user ${req.body.username}.`);
+
   let assertionOptions;
   // generate assertion options for user authentication
   try {
-    assertionOptions = await f2l.assertionOptions();
     const user = getUser(req.body.username);
+
+    debug(`Request assertOptions for user: \n${JSON.stringify(user, null, 2)}`);
+
+    assertionOptions = await f2l.assertionOptions();
     assertionOptions.allowCredentials = [{
-      id: user.rawId,
+      id: user.rawId, // we use rawId as this value was base64 encoded in the browser so should be compatible for decoding in the browser
       type: 'public-key'
     }];
     assertionOptions.origin = Config.fido2Lib.origin;
     assertionOptions.challenge = Buffer.from(assertionOptions.challenge).toString('base64');
+
+    debug(`Respond with assertionOptions: \n${JSON.stringify(assertionOptions, null, 2)}`);
 
     // record login details in user session
     req.session.challenge = assertionOptions.challenge;
@@ -139,12 +166,16 @@ async function postAssertionUser (req, res, next) {
     return res.status(400).json({ error: `Error generating assertion options. ${error.message}` });
   }
 
+  console.log("Respond with assertion options.");
+
   res.json(assertionOptions);
 }
 
 
 // route handler "/auth/login-complete" to complete authentication and validate assertion response
 async function postAssertionResponse (req, res, next) {
+  console.log(`Validate assertion response for authentication of user ${req.session.username}.`);
+
   let assertionResult;
   // validate assertion response
   try {
@@ -163,13 +194,21 @@ async function postAssertionResponse (req, res, next) {
       ...req.body,
       rawId: base64ToArrayBuffer(req.body.rawId)
     };
+
+    debug(`Validate assertion response against expectation. Response: ${JSON.stringify(assertionResponse, null, 2)} \nExpectation: ${JSON.stringify(assertionExpectations, null, 2)}`);
+
     // validate assertion
     assertionResult = await f2l.assertionResult(assertionResponse, assertionExpectations);
+
+    debug(`Successful assertion result: \n${JSON.stringify(assertionResult, null, 2)}`);
+
   }
   catch (error) {
     return res.status(400).json({ error: `Error validating assertion response. ${error.message}`});
   }
 
+  console.log("Authentication successful.");
+  
   res.json({ success: true });
 }
 
@@ -272,4 +311,10 @@ function getUsers () {
 // save users list to file
 function saveUsers (users) {
   fs.writeFileSync("./users.json", JSON.stringify(users, null, 2));
+}
+
+
+// debug logging
+function debug (msg) {
+  if (Config.debug) console.log(`\n${msg}\n`);
 }

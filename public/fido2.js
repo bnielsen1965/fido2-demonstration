@@ -1,6 +1,6 @@
 
 
-
+const debugEnabled = false;
 
 //
 // UI methods
@@ -94,6 +94,8 @@ function appendMessage (message) {
 
 // request attestation options from server for user registration
 async function requestAttestationOptions (registrationUser) {
+  debug(`Request attestation options for registration of user: ${JSON.stringify(registrationUser, null, 2)}`);
+
   let attestationOptions;
   // request attestation options from the server for the registering user
   try {
@@ -108,12 +110,17 @@ async function requestAttestationOptions (registrationUser) {
   catch (error) {
     return appendError(`Failed to get attestation options from server. ${error.message}`);
   }
+
+  debug(`Recieved attestation options for user registration: ${JSON.stringify(attestationOptions, null, 2)}`);
+
   return attestationOptions;
 }
 
 
 // use attestation options to create fido2 token public key credentials through browser
 async function attestationOptionsToPublicKeyCredentials (attestationOptions) {
+  debug(`Generate public key credentials for user registration with attestation options...`);
+
   let credentialsSettings, credentials;
   // assemble credential settings from attestation options
   try {
@@ -139,6 +146,9 @@ async function attestationOptionsToPublicKeyCredentials (attestationOptions) {
   catch (error) {
     return appendError(`Failed to create attestation credentials. ${error.message}`);
   }
+
+  debug(`Generated public key credentials for user registration: ${JSON.stringify(credentials, null, 2)}`);
+
   return credentials;
 }
 
@@ -149,8 +159,8 @@ async function requestAttestationResult (credentials) {
   // assemble credentials returned by browser into an attestation response for the server
   try {
     attestationResponse = {
-      id: credentials.id, // the credentials id is already base64 encoded
-      rawId: bufferToBase64(credentials.rawId), // base64 encode credentials rawId buffer
+      id: credentials.id, // the credentials id is already base64 encoded, note that this encoding may not be compatible with browser
+      rawId: bufferToBase64(credentials.rawId), // base64 encode credentials rawId buffer, note that this id should be used by the browser as it can be safely decoded
       response: {
         attestationObject: bufferToBase64(credentials.response.attestationObject), // base64 encode attestation object buffer
         clientDataJSON: bufferToBase64(credentials.response.clientDataJSON) // base64 encode client data JSON buffer
@@ -160,6 +170,8 @@ async function requestAttestationResult (credentials) {
   catch (error) {
     return appendError(`Failed to assemble attestation response from credentials. ${error.message}`);
   }
+
+  debug(`Request result from attestation response for user registration: ${JSON.stringify(attestationResponse, null, 2)}`);
 
   // use credentials from fido2 token to validate attestation from server
   try {
@@ -174,6 +186,9 @@ async function requestAttestationResult (credentials) {
   catch (error) {
     return appendError(`Failed to get attestation result from server. ${error.message}`);
   }
+
+  debug(`Successful attestation result for user registration: ${JSON.stringify(attestationResult, null, 2)}.`);
+
   return attestationResult;
 }
 
@@ -185,6 +200,8 @@ async function requestAttestationResult (credentials) {
 
 // request assertion options from server for authenticating user
 async function requestAssertionOptions (loginUser) {
+  debug(`Request assertion options for authentication of user: ${JSON.stringify(loginUser, null, 2)}`);
+
   let assertionOptions;
   try {
     let httpResponse = await fetch('/auth/login-begin', {
@@ -198,6 +215,9 @@ async function requestAssertionOptions (loginUser) {
   catch (error) {
     return appendError(`Failed to get assertion options from server. ${error.message}`);
   }
+
+  debug(`Recieved assertion options for user authentication: ${JSON.stringify(assertionOptions, null, 2)}`);
+
   return assertionOptions;
 }
 
@@ -205,23 +225,29 @@ async function requestAssertionOptions (loginUser) {
 async function assertionOptionsToPublicKeyCredentials (assertionOptions) {
   let credentialsSettings, credentials;
   try {
-    let credentialsSettings = {
+    credentialsSettings = {
       publicKey: {
         ...assertionOptions,
         challenge: base64ToBuffer(assertionOptions.challenge),
         allowCredentials: assertionOptions.allowCredentials.map(cred => {
           return {
             ...cred,
-            id: base64ToBuffer(cred.rawId) // convert base64 encoded id to array buffer, we use rawId as this value was base64 encoded by this library
+            id: base64ToBuffer(cred.id) // convert base64 encoded id to array buffer
           }
         })
       }
     };
+
+    debug(`Generate public key credentials for user authentication using credential settings: ${JSON.stringify(credentialsSettings, null, 2)}`);
+
     credentials = await navigator.credentials.get(credentialsSettings);
   }
   catch (error) {
     return appendError(`Failed to create assertion credentials. ${error.message}`);
   }
+
+  debug(`Generated public key credentials for user authentication: ${JSON.stringify(credentials, null, 2)}`);
+
   return credentials;
 }
 
@@ -249,6 +275,9 @@ async function credentialsToAssertionResult (credentials) {
   catch (error) {
     return appendError(`Failed to assemble assertion response from credentials. ${error.message}`);
   }
+
+  debug(`Request result from assertion response for user authentication: ${JSON.stringify(assertionResponse, null, 2)}`);
+
   try {
     let httpResponse = await fetch('/auth/login-complete', {
       method: 'POST',
@@ -261,6 +290,9 @@ async function credentialsToAssertionResult (credentials) {
   catch (error) {
     return appendError(`Failed to get assertion result from server. ${error.message}`);
   }
+
+  debug(`Successful asertion result for user authentication: ${JSON.stringify(assertionResult, null, 2)}.`);
+
   return assertionResult;
 }
 
@@ -278,7 +310,7 @@ function bufferToBase64(buffer) {
 
 // convert a base64 encoded string to a array buffer object
 function base64ToBuffer(base64) {
-  return stringToBuffer(atob(base64));// Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  return stringToBuffer(atob(base64));
 }
 
 // convert string to an array buffer object
@@ -303,4 +335,10 @@ function checkWebAuthnSupport () {
     appendMessage("WebAuthn support found.");
     return true;
   }
+}
+
+
+// log debug messages
+function debug (msg) {
+  if (debugEnabled) appendMessage(`<pre>${msg}</pre>`);
 }
